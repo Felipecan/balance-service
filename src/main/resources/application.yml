@@ -1,3 +1,7 @@
+app:
+  name: BalanceService
+server:
+  port : 8081
 spring:
   database:
     driverClassName: org.postgresql.Driver

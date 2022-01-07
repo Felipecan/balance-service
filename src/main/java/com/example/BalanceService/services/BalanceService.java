@@ -8,30 +8,30 @@ import org.springframework.stereotype.Service;
 
 import com.example.BalanceService.domain.Balance;
 import com.example.BalanceService.repositories.BalanceRepository;
+import com.example.BalanceService.services.exceptions.ObjectNotFoundException;
 
 @Service
 public class BalanceService {
 
 	@Autowired
-	private BalanceRepository balanceRepository;
+	private BalanceRepository repository;
 	
 	public Balance createBalance(Balance b) {
-		
+				
 		b.setBalanceValue(BigDecimal.ZERO);
-		return balanceRepository.save(b);
+		return repository.save(b);
 	}
 	
 	public Balance findBalanceFromAccountId(Integer accountId) {
 		
-		// TODO Fazer o throw
-		Optional<Balance> b = balanceRepository.findById(accountId);
-		return b.orElse(null);
+		Optional<Balance> b = repository.findById(accountId);
+		return b.orElseThrow(() -> new ObjectNotFoundException(
+				"Balance for ID " + accountId + " not found!"));
 	}
 	
 	public Balance updateBalanceOfAccount(Balance b) {
 	
-		// TODO Certirficar que vai ser lancada exception aqui
 		findBalanceFromAccountId(b.getAccountId());
-		return balanceRepository.save(b);
+		return repository.save(b);
 	}
 }

@@ -21,12 +21,12 @@ import com.example.BalanceService.services.BalanceService;
 public class BalanceController {
 	
 	@Autowired
-	private BalanceService balanceService;
+	private BalanceService service;
 
 	@PostMapping
 	public ResponseEntity<?> createBalance(@RequestBody Balance b) {
 		
-		b = balanceService.createBalance(b);
+		b = service.createBalance(b);
 		
 		URI uri = ServletUriComponentsBuilder
 				.fromCurrentRequest()
@@ -40,7 +40,7 @@ public class BalanceController {
 	@GetMapping(value = "/{accountId}")
 	public ResponseEntity<?> getBalanceFromAccount(@PathVariable Integer accountId) {
 		
-		Balance b = balanceService.findBalanceFromAccountId(accountId);
+		Balance b = service.findBalanceFromAccountId(accountId);
 		return ResponseEntity.ok().body(b);
 	}
 	
@@ -48,7 +48,7 @@ public class BalanceController {
 	public ResponseEntity<?> updateBalanceOfAccount(@RequestBody Balance b, @PathVariable Integer accountId) {
 	
 		b.setAccountId(accountId);
-		b = balanceService.updateBalanceOfAccount(b);
+		b = service.updateBalanceOfAccount(b);
 		return ResponseEntity.noContent().build();
 	}
 }
