@@ -2,6 +2,8 @@ package com.example.BalanceService.controllers;
 
 import java.net.URI;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.BalanceService.domain.Balance;
+import com.example.BalanceService.domain.TransitionalBalance;
+import com.example.BalanceService.dto.CreateBalanceDTO;
+import com.example.BalanceService.dto.BalanceDTO;
 import com.example.BalanceService.services.BalanceService;
+import com.example.BalanceService.services.TransitionalBalanceService;
 
 @RestController
 @RequestMapping(value = "/balances")
@@ -22,16 +28,20 @@ public class BalanceController {
 	
 	@Autowired
 	private BalanceService service;
+	
+	@Autowired
+	private TransitionalBalanceService transitionalService;
 
 	@PostMapping
-	public ResponseEntity<?> createBalance(@RequestBody Balance b) {
+	public ResponseEntity<?> createBalance(@Valid @RequestBody CreateBalanceDTO b) {
 		
-		b = service.createBalance(b);
+		Balance balance = new Balance(b);
+		balance = service.createBalance(balance);
 		
 		URI uri = ServletUriComponentsBuilder
 				.fromCurrentRequest()
 				.path("/{id}")
-				.buildAndExpand(b.getAccountId())
+				.buildAndExpand(balance.getAccountId())
 				.toUri();
 		
 		return ResponseEntity.created(uri).build();
@@ -40,15 +50,18 @@ public class BalanceController {
 	@GetMapping(value = "/{accountId}")
 	public ResponseEntity<?> getBalanceFromAccount(@PathVariable Integer accountId) {
 		
-		Balance b = service.findBalanceFromAccountId(accountId);
+		Balance b = service.getRealBalanceFromAccountId(accountId);
 		return ResponseEntity.ok().body(b);
 	}
 	
 	@PutMapping(value = "/{accountId}")
-	public ResponseEntity<?> updateBalanceOfAccount(@RequestBody Balance b, @PathVariable Integer accountId) {
+	public ResponseEntity<?> updateBalanceOfAccount(@Valid @RequestBody BalanceDTO b, @PathVariable Integer accountId) {
 	
 		b.setAccountId(accountId);
-		b = service.updateBalanceOfAccount(b);
+		TransitionalBalance tb = new TransitionalBalance(b);
+		
+		tb = transitionalService.updateBalanceOfAccount(tb);
+		
 		return ResponseEntity.noContent().build();
 	}
 }

@@ -1,0 +1,56 @@
+version: '3.5'
+
+services:
+  db_balance:
+    container_name: db_balance
+    image: postgres:12-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - APP_DB_USER=dev
+      - APP_DB_PASS=dev
+      - BALANCE_DB_NAME=balance_database
+    ports:
+      - 54321:5432
+    volumes:
+      - ./db_scripts:/docker-entrypoint-initdb.d
+    networks:
+      - db_net_1
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+        - 5672:5672
+        - 15672:15672
+    networks:
+        - rabbit_net    
+  balance-service:
+    container_name: balance-service
+    image: balance-service:latest
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db_balance:5432/balance_database
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    build:
+      context: .  
+    ports:
+      - 8081:8081
+    restart: always  
+    networks:
+      - db_net_1
+      - services_net
+      - rabbit_net
+    depends_on:
+      - db_balance
+      - rabbitmq
+networks:
+  db_net_1:
+    name: db_net_1
+  services_net:
+    name: services_net
+  rabbit_net:
+    name: rabbit_net
+   
